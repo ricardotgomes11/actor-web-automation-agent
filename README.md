@@ -61,6 +61,10 @@ The **GPT Model** (`model`) option specifies which GPT model to use. You can fin
 
 The **Proxy configuration** (`proxyConfiguration`) option enables you to set proxies. The Web Agent will use these to prevent getting blocked by target websites. You can use both [Apify Proxy](https://apify.com/proxy) and custom HTTP or SOCKS5 proxy servers.
 
+**Jules self mode**
+
+Set `julesSelfMode` to `true` to run the agent in a simple self-adapting loop. The optional `julesIterations` field controls how many times the agent reuses its previous output as the next instruction.
+
 You can enter these either directly in [Apify Console](https://console.apify.com/) or programmatically in a JSON object using the [Apify API](https://apify.com/docs/api/v2#/reference/actors/run-collection/run-actor). Watch [this video](https://www.youtube.com/watch?v=ViYYDHSBAKM) to learn how get your data via the cURL command and with both Apify's API clients (Python and Node.js).  
 
 [AI Web Agent API](https://www.youtube.com/watch?v=ViYYDHSBAKM)

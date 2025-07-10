@@ -8,4 +8,8 @@ export interface Input {
     proxyConfiguration?: ProxyConfigurationOptions;
     openaiApiKey?: string; // We can pass openaiApiKey as env variable locally
     model?: string;
+    /** When enabled the agent reruns in a simple self adapting loop. */
+    julesSelfMode?: boolean;
+    /** Number of iterations for the self mode. */
+    julesIterations?: number;
 }

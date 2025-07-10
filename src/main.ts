@@ -14,6 +14,7 @@ import { createServer } from './screenshotter_server.js';
 import { webAgentLog } from './utils.js';
 import { HTML_CURRENT_PAGE_PREFIX } from './consts.js';
 import { CostHandler } from './cost_handler.js';
+import { runJulesSelfMode } from './jules_self_mode.js';
 
 const LIVE_VIEW_URL = process.env.ACTOR_WEB_SERVER_URL ? process.env.ACTOR_WEB_SERVER_URL : 'http://localhost:4000';
 const RECORDING_PATH = 'recording.mp4';
@@ -27,6 +28,8 @@ const {
     proxyConfiguration,
     openaiApiKey,
     model = 'gpt-3.5-turbo-16k',
+    julesSelfMode = false,
+    julesIterations = 3,
 } = await Actor.getInput() as Input;
 
 if (!process.env.OPENAI_API_KEY && !openaiApiKey) {
@@ -151,7 +154,12 @@ const finalInstructions = startUrl
     ? `Open url ${startUrl} and continue with ${instructions}`
     : instructions;
 webAgentLog.info(`Starting agent with instructions: ${finalInstructions}`);
-const result = await executor.run(finalInstructions);
+let result: string;
+if (julesSelfMode) {
+    result = await runJulesSelfMode(executor, finalInstructions, julesIterations);
+} else {
+    result = await executor.run(finalInstructions);
+}
 const costs = costHandler.getTotalCost();
 webAgentLog.info(`Agent finished its work.`, { costUSD: costs.usd });
 webAgentLog.info(result);
