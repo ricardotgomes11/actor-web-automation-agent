@@ -11,8 +11,9 @@
 		"express": "^4.18.2",
 		"gpt-3-encoder": "^1.1.4",
 		"langchain": "^0.0.147",
-		"langsmith": "^0.0.41",
-		"puppeteer": "*",
+        "langsmith": "^0.0.41",
+        "@google/generative-ai": "^0.3.0",
+        "puppeteer": "*",
 		"puppeteer-screen-recorder": "^2.1.2",
 		"zod": "^3.22.2"
 	},
@@ -36,9 +37,10 @@
 		"start:dev": "ts-node-esm -T src/main.ts",
 		"build": "tsc",
 		"lint": "eslint ./src --ext .ts",
-		"lint:fix": "eslint ./src --ext .ts --fix",
-		"test": "jest"
-	},
+                "lint:fix": "eslint ./src --ext .ts --fix",
+                "test": "jest",
+                "gemini-bot": "ts-node-esm src/gemini_bot.ts"
+        },
 	"author": "It's not you it's me",
 	"license": "ISC"
 }
