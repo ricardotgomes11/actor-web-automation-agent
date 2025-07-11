@@ -80,3 +80,13 @@ The cost depends on the model you are using and the action browser process. The 
 **Cost of the running browser**
 
 The Web Agent uses a headless browser. The cost of the browser is based on the amount of time it takes to run the Agent. You can find information about the cost on the [pricing page](https://apify.com/pricing).
+
+## 🤖 Gemini bot
+
+This repository also includes a simple script that uses Google's Gemini model to answer questions about the project. Provide your `GOOGLE_API_KEY` environment variable and run:
+
+```bash
+npm run gemini-bot -- path/to/project "What does this project do?"
+```
+
+The script loads the `README.md` from the specified project path and uses it as context for the Gemini model.
