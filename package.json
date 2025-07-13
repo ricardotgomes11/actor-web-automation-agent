@@ -13,8 +13,9 @@
 		"langchain": "^0.0.147",
 		"langsmith": "^0.0.41",
 		"puppeteer": "*",
-		"puppeteer-screen-recorder": "^2.1.2",
-		"zod": "^3.22.2"
+                "puppeteer-screen-recorder": "^2.1.2",
+                "zod": "^3.22.2",
+                "commander": "^10.0.1"
 	},
 	"devDependencies": {
 		"@apify/eslint-config-ts": "^0.2.3",
@@ -37,7 +38,9 @@
 		"build": "tsc",
 		"lint": "eslint ./src --ext .ts",
 		"lint:fix": "eslint ./src --ext .ts --fix",
-		"test": "jest"
+                "test": "jest",
+        "sign": "ts-node -T src/sign_cli.ts",
+        "verify": "ts-node -T src/verify_cli.ts"
 	},
 	"author": "It's not you it's me",
 	"license": "ISC"
