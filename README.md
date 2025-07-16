@@ -80,3 +80,15 @@ The cost depends on the model you are using and the action browser process. The 
 **Cost of the running browser**
 
 The Web Agent uses a headless browser. The cost of the browser is based on the amount of time it takes to run the Agent. You can find information about the cost on the [pricing page](https://apify.com/pricing).
+
+## 🔁 Autonomous API Runner
+
+The `src/autonomous_runner.ts` script demonstrates how to call a series of custom API endpoints without manual steps. Set `BASE_URL` as an environment variable pointing to your API host and run:
+
+```bash
+npm run build
+node dist/autonomous_runner.js
+```
+
+Each endpoint is contacted in sequence and the responses are printed to the console.
+
