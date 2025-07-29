@@ -14,6 +14,7 @@
 		"langsmith": "^0.0.41",
 		"puppeteer": "*",
 		"puppeteer-screen-recorder": "^2.1.2",
+		"stripe": "^18.3.0",
 		"zod": "^3.22.2"
 	},
 	"devDependencies": {
@@ -34,11 +35,12 @@
 		"start": "npm run start:dev",
 		"start:prod": "node dist/main.js",
 		"start:dev": "ts-node-esm -T src/main.ts",
-		"build": "tsc",
-		"lint": "eslint ./src --ext .ts",
-		"lint:fix": "eslint ./src --ext .ts --fix",
-		"test": "jest"
-	},
+                "build": "tsc",
+                "lint": "eslint ./src --ext .ts",
+                "lint:fix": "eslint ./src --ext .ts --fix",
+                "test": "jest",
+                "generate-input": "ts-node-esm -T src/initialize.ts"
+        },
 	"author": "It's not you it's me",
 	"license": "ISC"
 }
