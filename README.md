@@ -80,3 +80,17 @@ The cost depends on the model you are using and the action browser process. The 
 **Cost of the running browser**
 
 The Web Agent uses a headless browser. The cost of the browser is based on the amount of time it takes to run the Agent. You can find information about the cost on the [pricing page](https://apify.com/pricing).
+
+## 🏦 Financial automation example
+
+A minimal Python example (`codex_fin.py`) demonstrates how a codex could interact with a Plaid-like API, analyze transactions and suggest actions:
+
+```bash
+python codex_fin.py
+```
+
+The script shows sample detection of recurring subscriptions and suggests an auto-save amount based on income.
+
+## 💡 Axiom of Duality
+
+The [Axiom of Duality](docs/axiom-of-duality.html) summary explores how conceptual goals and computational realities can clash when building agents. Balancing these perspectives helps maintain transparency and integrity.
