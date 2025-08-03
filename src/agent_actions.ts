@@ -2,6 +2,7 @@ import { Actor } from 'apify';
 import { utils } from 'crawlee';
 import { ElementHandle, type Page } from 'puppeteer';
 import { z } from 'zod';
+import Stripe from 'stripe';
 import { shrinkHtmlForWebAutomation, tagAllElementsOnPage } from './shrink_html.js';
 import { HTML_CURRENT_PAGE_PREFIX, UNIQUE_ID_ATTRIBUTE } from './consts.js';
 import { maybeShortsTextByTokenLength } from './tokens.js';
@@ -162,6 +163,16 @@ export async function captureAndSaveScreenshot(context: AgentBrowserContext, { f
     return 'Screenshot saved';
 }
 
+export async function getStripeBalance(_: AgentBrowserContext) {
+    const apiKey = process.env.STRIPE_API_KEY;
+    if (!apiKey) {
+        throw new Error('STRIPE_API_KEY environment variable not set');
+    }
+    const stripe = new Stripe(apiKey, { apiVersion: '2022-11-15' });
+    const balance = await stripe.balance.retrieve();
+    return `Stripe balance retrieved: ${JSON.stringify(balance)}`;
+}
+
 /**
  * List of all actions that can agent can use.
  * NOTE: The return value from the action function will be used in the next step in LLM flow.
@@ -246,6 +257,12 @@ export const ACTIONS = {
             saveHtml: z.boolean().optional().describe('Whether to save the HTML of the page'),
         }),
         action: captureAndSaveScreenshot,
+    },
+    GET_STRIPE_BALANCE: {
+        name: 'get_stripe_balance',
+        description: 'Retrieves the current balance from Stripe using the STRIPE_API_KEY environment variable',
+        parameters: z.object({}).optional(),
+        action: getStripeBalance,
     },
 };
 

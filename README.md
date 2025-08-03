@@ -65,6 +65,10 @@ You can enter these either directly in [Apify Console](https://console.apify.com
 
 [AI Web Agent API](https://www.youtube.com/watch?v=ViYYDHSBAKM)
 
+### Generating input automatically
+
+Run `npm run generate-input` to create `generated_input.json` based on environment variables like `START_URL`, `INSTRUCTIONS`, and `OPENAI_API_KEY`. This script lives in `src/initialize.ts` and helps prepare a seed input for the actor.
+
 ## ⬇️ Output
 
 You can find the results of the run in the **Storage tab → Key-value store** under the `OUTPUT` key. You can also view the recorded Web Agent's browsing session under`recording.mp4`.
