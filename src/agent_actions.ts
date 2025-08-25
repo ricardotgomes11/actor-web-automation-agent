@@ -155,8 +155,10 @@ export async function captureAndSaveScreenshot(context: AgentBrowserContext, { f
     const key = filename || 'screenshot';
     const kvs = await Actor.openKeyValueStore();
     await utils.puppeteer.saveSnapshot(page, { key, saveHtml });
-    webAgentLog.info(`Screenshot saved, you can check it ${kvs.getPublicUrl(key)}.jpeg .`, {
-        screenshotUrl: `${kvs.getPublicUrl(key)}.jpg`,
+    const screenshotExtension = '.jpg';
+    const screenshotUrl = `${kvs.getPublicUrl(key)}${screenshotExtension}`;
+    webAgentLog.info(`Screenshot saved, you can check it ${screenshotUrl} .`, {
+        screenshotUrl,
         htmlUrl: saveHtml && `${kvs.getPublicUrl(key)}.html`,
     });
     return 'Screenshot saved';
