@@ -92,3 +92,18 @@ node dist/autonomous_runner.js
 
 Each endpoint is contacted in sequence and the responses are printed to the console.
 
+
+## 📈 Sandbox Metrics
+
+Containers can optionally collect lightweight runtime metrics. Metrics are
+recorded as simple key-value pairs and can be written either to a JSON file
+or directly to stdout.
+
+Set the `SANDBOX_METRICS_PATH` environment variable to enable metrics
+collection:
+
+- `SANDBOX_METRICS_PATH=/path/to/metrics.json` – write metrics to a file.
+- `SANDBOX_METRICS_PATH=stdout` – print metrics as JSON to stdout.
+
+Leave `SANDBOX_METRICS_PATH` unset to disable metrics collection if you do
+not wish to collect data or want to avoid the overhead.
