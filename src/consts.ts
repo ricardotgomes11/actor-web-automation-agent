@@ -1,6 +1,6 @@
 export const UNIQUE_ID_ATTRIBUTE = 'gid';
 // WEB AUTOMATION
-// TODO
+// Whitelist used by shrinkHtml to keep only relevant markup for the agent.
 export const WHITELIST_TAGS_WEB_AUTOMATION = [
     'html', 'body', 'title',
     'main', 'footer', 'header', 'nav', 'section', 'article',

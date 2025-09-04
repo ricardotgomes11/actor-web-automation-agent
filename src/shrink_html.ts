@@ -5,7 +5,11 @@ import { WHITELIST_ATTRIBUTES_WEB_AUTOMATION, WHITELIST_TAGS_WEB_AUTOMATION } fr
 interface ShrinkHtmlOptions {
     whiteListTags: string[];
     whiteListAttributes: string[];
-    maxElementTextLength?: number; // TODO: Implement this
+    /**
+     * Maximum length of text nodes inside an element. Text beyond the limit
+     * will be truncated. When undefined the text is left intact.
+     */
+    maxElementTextLength?: number;
 }
 
 /**
@@ -25,11 +29,10 @@ export async function tagAllElementsOnPage(page: Page, attributeName: string) {
  * @param options
  */
 export async function shrinkHtml(page: Page, options: ShrinkHtmlOptions) {
-    const { whiteListTags, whiteListAttributes } = options;
+    const { whiteListTags, whiteListAttributes, maxElementTextLength } = options;
     const html = await page.content();
     const $ = cheerio.load(html);
     const allElements = $('html *');
-    // TODO: Remove empty elements (with not content)
     for (const element of allElements.toArray().reverse()) {
         const $element = $(element);
         const tag = $element.prop('tagName').toLocaleLowerCase();
@@ -41,6 +44,20 @@ export async function shrinkHtml(page: Page, options: ShrinkHtmlOptions) {
                 if (!whiteListAttributes.includes(attr)) delete attributes[attr];
             });
             element.attribs = attributes;
+            if (maxElementTextLength) {
+                $element.contents()
+                    .filter((_, node) => node.type === 'text')
+                    .each((_, node) => {
+                        const textNode: any = node;
+                        if (textNode.data && textNode.data.length > maxElementTextLength) {
+                            // eslint-disable-next-line no-param-reassign
+                            textNode.data = textNode.data.slice(0, maxElementTextLength);
+                        }
+                    });
+            }
+            if ($element.text().trim() === '' && $element.children().length === 0) {
+                $element.remove();
+            }
         } else {
             // Keep the children and remove the element with its content
             $element.before($element.children());

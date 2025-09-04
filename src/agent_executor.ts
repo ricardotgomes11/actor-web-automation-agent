@@ -27,6 +27,8 @@ export class ToolInputParsingException extends Error {
 export interface WebAgentExecutorInput extends AgentExecutorInput {
     agent: BaseSingleActionAgent;
     updatePreviousStepMethod?: (step: AgentStep) => AgentStep;
+    /** Maximum number of iterations before the executor stops. */
+    maxIterations?: number;
 }
 
 /**
@@ -111,6 +113,9 @@ export class WebAgentExecutor extends BaseChain {
         }
         this.returnIntermediateSteps = input.returnIntermediateSteps ?? this.returnIntermediateSteps;
         this.maxIterations = input.maxIterations ?? this.maxIterations;
+        if (this.maxIterations !== undefined && this.maxIterations <= 0) {
+            throw new Error('maxIterations must be a positive integer');
+        }
         this.earlyStoppingMethod = input.earlyStoppingMethod ?? this.earlyStoppingMethod;
         this.updatePreviousStepMethod = input.updatePreviousStepMethod;
     }
