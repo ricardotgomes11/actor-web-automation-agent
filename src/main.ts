@@ -1,5 +1,5 @@
 import { Actor, log } from 'apify';
-import { readFile } from 'fs/promises';
+import { createReadStream } from 'fs';
 import { launchPuppeteer, sleep } from 'crawlee';
 import { OpenAIAgent } from 'langchain/agents';
 import { ChatOpenAI } from 'langchain/chat_models/openai';
@@ -105,10 +105,7 @@ const tools = ACTION_LIST.map((action) => {
         name: action.name,
         description: action.description,
         schema: action.parameters,
-        func: async (args) => {
-            // @ts-ignore
-            return action.action({ page }, args);
-        },
+        func: async (args) => (action.action as any)({ page }, args),
     });
 });
 
@@ -166,11 +163,10 @@ await browser.close();
 
 // Save recording to key-value store
 try {
-    // TODO: Use stream to upload !!!
     const store = await Actor.openKeyValueStore();
-    const recordingBuffer = await readFile(RECORDING_PATH);
-    await store.setValue('recording.mp4', recordingBuffer, { contentType: 'video/mp4' });
-    log.info(`Recording finished, you can see it or download it in on ${store.getPublicUrl(RECORDING_PATH)}`);
+    const stream = createReadStream(RECORDING_PATH);
+    await store.setValue('recording.mp4', stream, { contentType: 'video/mp4' });
+    log.info(`Recording finished, you can see it or download it on ${store.getPublicUrl(RECORDING_PATH)}`);
 } catch (err) {
     log.error('Error while saving recording to key-value store', { err });
 }
