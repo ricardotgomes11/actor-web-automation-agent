@@ -34,3 +34,33 @@ test('shrinkHtmlForWebAutomation can be run twice', { skip: !depsPresent }, asyn
     const shrinkedHtml2 = await shrinkHtmlForWebAutomation(createPage(shrinkedHtml));
     assert.equal(shrinkedHtml, shrinkedHtml2);
 });
+
+test('removes non-whitelisted tags but keeps children', { skip: !depsPresent }, async () => {
+    const html = `<div><foo><span>A</span></foo><p>B</p></div>`;
+    const out = await shrinkHtmlForWebAutomation(createPage(html));
+    assert.match(out, /<span>A<\/span>/);
+    assert.match(out, /<p>B<\/p>/);
+    assert.doesNotMatch(out, /<foo/);
+});
+
+test('preserves data-/aria- attributes', { skip: !depsPresent }, async () => {
+    const html = `<div data-id="123" aria-label="pic" onclick="evil()"></div>`;
+    const out = await shrinkHtmlForWebAutomation(createPage(html));
+    assert.match(out, /data-id="123"/);
+    assert.match(out, /aria-label="pic"/);
+    assert.doesNotMatch(out, /onclick=/);
+});
+
+test('does not collapse whitespace in <textarea>', { skip: !depsPresent }, async () => {
+    const html = `<textarea>line 1
+    line    2</textarea>`;
+    const out = await shrinkHtmlForWebAutomation(createPage(html));
+    assert.ok(out.includes('line 1\n    line    2'));
+});
+
+test('removes empty elements after pruning', { skip: !depsPresent }, async () => {
+    const html = `<div><span></span><span>text</span></div>`;
+    const out = await shrinkHtmlForWebAutomation(createPage(html));
+    assert.doesNotMatch(out, /<span><\/span>/);
+    assert.match(out, /<span>text<\/span>/);
+});

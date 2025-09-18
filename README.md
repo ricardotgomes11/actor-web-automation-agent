@@ -93,3 +93,13 @@ npm test
 ## 📱 Integrating Scriptable with Shortcuts
 For instructions on connecting the Scriptable app with iOS Shortcuts, see [docs/scriptable-shortcuts.md](docs/scriptable-shortcuts.md).
 
+## 🗜️ Shrinking HTML locally
+
+Try the shrinker on any file:
+
+```bash
+npm run shrink-html -- ./example.html --out ./example.shrunk.html
+# or
+cat example.html | npx shrink-html > example.shrunk.html
+```
+
