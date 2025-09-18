@@ -1,0 +1,71 @@
+{
+  "id": "anchor-state-0001",
+  "version": "1.0.0",
+  "generated_at": "2025-01-15T00:00:00Z",
+  "safety_invariants": [
+    {
+      "name": "no_external_funds_transfer_without_mfa",
+      "description": "All outbound payments require multi-factor authenticated human approval."
+    },
+    {
+      "name": "privacy_no_exfiltration",
+      "description": "Customer PII never leaves approved data zones; adapters redact data by policy."
+    },
+    {
+      "name": "legal_policy_compliance",
+      "description": "All actions comply with regional legal and regulatory requirements."
+    }
+  ],
+  "performance_thresholds": {
+    "latency_ms_p95": 2500,
+    "task_success_rate_min": 0.98,
+    "error_budget_monthly": 0.02
+  },
+  "resource_limits": {
+    "cpu_core_hours_daily": 250,
+    "gpu_hours_daily": 48,
+    "memory_gb_max": 512,
+    "external_api_budget_usd_daily": 500
+  },
+  "allowed_adapters": [
+    {
+      "name": "payments_stripe",
+      "vault_secret_ref": "secret://vault/stripe/prod/service-key",
+      "scopes": ["charge.create", "charge.read"]
+    },
+    {
+      "name": "crm_hubspot",
+      "vault_secret_ref": "secret://vault/hubspot/prod/token",
+      "scopes": ["contacts.read", "tickets.write"]
+    }
+  ],
+  "approval_policy": {
+    "auto": [
+      {
+        "change_type": "ui_copy_update",
+        "risk_class": "low",
+        "required_verifications": ["unit_tests", "regression_suite"]
+      }
+    ],
+    "manual": [
+      {
+        "change_type": "model_weight_update",
+        "risk_class": "high",
+        "required_signoffs": ["governance_dual", "compliance"],
+        "required_verifications": [
+          "unit_tests",
+          "regression_suite",
+          "adversarial_stress",
+          "distribution_shift_analysis"
+        ]
+      }
+    ]
+  },
+  "rollback_policy": {
+    "max_recovery_time_minutes": 15,
+    "checkpoint_frequency_minutes": 10
+  },
+  "signing_key_fingerprint": "GOV-ROOT-KEY-2025",
+  "anchor_hash": "sha3-512:PLACEHOLDER_HASH",
+  "signature": "-----BEGIN SIGNATURE-----\nPLACEHOLDER_SIGNATURE\n-----END SIGNATURE-----"
+}
