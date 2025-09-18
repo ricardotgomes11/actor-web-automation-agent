@@ -11,6 +11,18 @@ interface AgentBrowserContext {
     page: Page;
 }
 
+export const agentActionDependencies = {
+    tagAllElementsOnPage,
+    shrinkHtmlForWebAutomation,
+    closeCookieModals: utils.puppeteer.closeCookieModals.bind(utils.puppeteer),
+    maybeShortsTextByTokenLength,
+};
+
+function buildTextSelector(tagName: string, text: string) {
+    const normalizedTag = (tagName || '').trim() || '*';
+    return `${normalizedTag}::-p-text(${JSON.stringify(text)})`;
+}
+
 export async function waitForNavigation(page: Page) {
     try {
         await page.waitForNavigation({
@@ -27,11 +39,11 @@ export async function goToUrl(context: AgentBrowserContext, { url }: { url: stri
     const { page } = context;
     await page.goto(url);
     await waitForNavigation(page);
-    await utils.puppeteer.closeCookieModals(page);
-    await tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
-    const minHtml = await shrinkHtmlForWebAutomation(page);
+    await agentActionDependencies.closeCookieModals(page);
+    await agentActionDependencies.tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
+    const minHtml = await agentActionDependencies.shrinkHtmlForWebAutomation(page);
     webAgentLog.info(`Went to page, current URL: ${page.url()}`, { url, htmlLength: minHtml.length });
-    return maybeShortsTextByTokenLength(`Previous action was: go_to_url, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
+    return agentActionDependencies.maybeShortsTextByTokenLength(`Previous action was: go_to_url, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
 }
 
 export async function betterClick(page: Page, element: ElementHandle) {
@@ -49,8 +61,9 @@ export async function betterClick(page: Page, element: ElementHandle) {
 }
 
 export async function clickElement(context: AgentBrowserContext, { text, gid, tagName }: { text: string, gid: number, tagName?: string }) {
-    tagName = tagName || 'a';
-    webAgentLog.info('Calling clicking on link', { text, gid, tagName });
+    tagName = (tagName || 'a').trim() || 'a';
+    const fallbackSelector = text ? buildTextSelector(tagName, text) : undefined;
+    webAgentLog.info('Calling clicking on link', { text, gid, tagName, fallbackSelector });
     const { page } = context;
     let elementFoundAndClicked = false;
     let linkFoundByGidSelector = false;
@@ -64,8 +77,9 @@ export async function clickElement(context: AgentBrowserContext, { text, gid, ta
         }
     }
 
-    if (!elementFoundAndClicked && text) {
-        const link = await page.$(`${tagName} ::-p-text(${text})`);
+    if (!elementFoundAndClicked && text && fallbackSelector) {
+        webAgentLog.debug('Attempting fallback text selector lookup', { fallbackSelector, tagName, gid, text });
+        const link = await page.$(fallbackSelector);
         if (link) {
             await betterClick(page, link);
             elementFoundAndClicked = true;
@@ -79,12 +93,12 @@ export async function clickElement(context: AgentBrowserContext, { text, gid, ta
     }
 
     await waitForNavigation(page);
-    await utils.puppeteer.closeCookieModals(page);
-    await tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
-    const minHtml = await shrinkHtmlForWebAutomation(page);
+    await agentActionDependencies.closeCookieModals(page);
+    await agentActionDependencies.tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
+    const minHtml = await agentActionDependencies.shrinkHtmlForWebAutomation(page);
 
     webAgentLog.info(`Clicked on link, current URL: ${page.url()}`, { text, gid, linkFoundByGidSelector, htmlLength: minHtml.length });
-    return maybeShortsTextByTokenLength(`Previous action was: click_element, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
+    return agentActionDependencies.maybeShortsTextByTokenLength(`Previous action was: click_element, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
 }
 
 export async function fillForm(context: AgentBrowserContext, { formData }: { formData: { gid: number, value: string }[]}) {
@@ -105,11 +119,11 @@ export async function fillForm(context: AgentBrowserContext, { formData }: { for
         await page.keyboard.press('Enter');
     }
     await waitForNavigation(page);
-    await utils.puppeteer.closeCookieModals(page);
-    await tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
-    const minHtml = await shrinkHtmlForWebAutomation(page);
+    await agentActionDependencies.closeCookieModals(page);
+    await agentActionDependencies.tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
+    const minHtml = await agentActionDependencies.shrinkHtmlForWebAutomation(page);
     webAgentLog.info(`Form submitted, current URL: ${page.url()}`, { htmlLength: minHtml.length });
-    return maybeShortsTextByTokenLength(`Previous action was: fill_form_and_submit, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
+    return agentActionDependencies.maybeShortsTextByTokenLength(`Previous action was: fill_form_and_submit, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
 }
 
 export async function extractData(context: AgentBrowserContext, { attributesToExtract }: { attributesToExtract: { gid: number, keyName: string }[] }) {
