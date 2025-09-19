@@ -11,6 +11,144 @@ interface AgentBrowserContext {
     page: Page;
 }
 
+export const agentActionDependencies = {
+    tagAllElementsOnPage,
+    shrinkHtmlForWebAutomation,
+    closeCookieModals: utils.puppeteer.closeCookieModals.bind(utils.puppeteer),
+    maybeShortsTextByTokenLength,
+};
+
+function collapseWhitespace(value: string) {
+    return value.replace(/\s+/g, ' ').trim();
+}
+
+function sanitizeTagName(tagName?: string) {
+    const sanitized = (tagName ?? '').trim();
+    if (!sanitized) return '*';
+    if (sanitized === '*') return '*';
+    return sanitized.toLowerCase();
+}
+
+function uniqueStrings(values: string[]) {
+    const seen = new Set<string>();
+    const result: string[] = [];
+    for (const value of values) {
+        if (!seen.has(value)) {
+            seen.add(value);
+            result.push(value);
+        }
+    }
+    return result;
+}
+
+function createTextVariants(text: string) {
+    const variants = [text];
+    const trimmed = text.trim();
+    if (trimmed && trimmed !== text) variants.push(trimmed);
+    const collapsed = collapseWhitespace(text);
+    if (collapsed && !variants.includes(collapsed)) variants.push(collapsed);
+    return uniqueStrings(variants);
+}
+
+function buildTextSelectors(tagName: string, text: string) {
+    const sanitizedTag = sanitizeTagName(tagName);
+    const tagsToTry = sanitizedTag === '*' ? ['*'] : [sanitizedTag, '*'];
+    const textVariants = createTextVariants(text);
+    const selectors: string[] = [];
+    const seen = new Set<string>();
+    for (const candidateTag of tagsToTry) {
+        for (const variant of textVariants) {
+            const selector = `${candidateTag}::-p-text(${JSON.stringify(variant)})`;
+            if (!seen.has(selector)) {
+                seen.add(selector);
+                selectors.push(selector);
+            }
+        }
+    }
+    return selectors;
+}
+
+function buildSearchSelectors(tagName: string) {
+    const sanitizedTag = sanitizeTagName(tagName);
+    const selectors = new Set<string>();
+    if (sanitizedTag !== '*') selectors.add(sanitizedTag);
+    switch (sanitizedTag) {
+        case 'a':
+            selectors.add('[role="link"]');
+            break;
+        case 'button':
+            selectors.add('[role="button"]');
+            break;
+        case 'input':
+        case 'textarea':
+            selectors.add('input');
+            selectors.add('textarea');
+            selectors.add('select');
+            break;
+        default:
+            break;
+    }
+    selectors.add('*');
+    return Array.from(selectors);
+}
+
+type TextSearchParameters = {
+    selectorList: string[];
+    variants: string[];
+    normalized: string[];
+    lower: string[];
+    limit: number;
+};
+
+async function queryByTextContent(page: Page, tagName: string | undefined, text: string): Promise<ElementHandle<Element> | null> {
+    const sanitizedTag = sanitizeTagName(tagName);
+    const selectors = buildSearchSelectors(sanitizedTag);
+    const textVariants = createTextVariants(text);
+    const normalizedVariants = textVariants.map(collapseWhitespace);
+    const lowerVariants = normalizedVariants.map((variant) => variant.toLowerCase());
+    const params: TextSearchParameters = {
+        selectorList: selectors,
+        variants: textVariants,
+        normalized: normalizedVariants,
+        lower: lowerVariants,
+        limit: 2000,
+    };
+    const handle = await page.evaluateHandle(({ selectorList, variants, normalized, lower, limit }: TextSearchParameters) => {
+        const matchesVariant = (value: string | null | undefined) => {
+            if (!value) return false;
+            const trimmed = value.trim();
+            if (variants.includes(trimmed)) return true;
+            const collapsedValue = value.replace(/\s+/g, ' ').trim();
+            if (normalized.includes(collapsedValue)) return true;
+            if (lower.includes(collapsedValue.toLowerCase())) return true;
+            return false;
+        };
+
+        const visited = new Set<Element>();
+        for (const selector of selectorList) {
+            const candidates = Array.from(document.querySelectorAll(selector));
+            for (const candidate of candidates) {
+                if (!(candidate instanceof Element) || visited.has(candidate)) continue;
+                visited.add(candidate);
+                if (matchesVariant((candidate as HTMLElement).innerText)) return candidate;
+                if (matchesVariant(candidate.textContent)) return candidate;
+                if (matchesVariant(candidate.getAttribute('aria-label'))) return candidate;
+                if (matchesVariant(candidate.getAttribute('title'))) return candidate;
+                if (visited.size >= limit) return null;
+            }
+        }
+
+        return null;
+    }, params);
+
+    const element = handle.asElement() as ElementHandle<Element> | null;
+    if (element) {
+        return element;
+    }
+    await handle.dispose();
+    return null;
+}
+
 export async function waitForNavigation(page: Page) {
     try {
         await page.waitForNavigation({
@@ -27,11 +165,11 @@ export async function goToUrl(context: AgentBrowserContext, { url }: { url: stri
     const { page } = context;
     await page.goto(url);
     await waitForNavigation(page);
-    await utils.puppeteer.closeCookieModals(page);
-    await tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
-    const minHtml = await shrinkHtmlForWebAutomation(page);
+    await agentActionDependencies.closeCookieModals(page);
+    await agentActionDependencies.tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
+    const minHtml = await agentActionDependencies.shrinkHtmlForWebAutomation(page);
     webAgentLog.info(`Went to page, current URL: ${page.url()}`, { url, htmlLength: minHtml.length });
-    return maybeShortsTextByTokenLength(`Previous action was: go_to_url, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
+    return agentActionDependencies.maybeShortsTextByTokenLength(`Previous action was: go_to_url, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
 }
 
 export async function betterClick(page: Page, element: ElementHandle) {
@@ -39,7 +177,17 @@ export async function betterClick(page: Page, element: ElementHandle) {
         await Promise.all([
             // NOTE: Pptr click is not working for some reason for non visible elements,
             // ensures click is called on the element itself.
-            page.evaluate((el: any) => el.click(), element),
+            page.evaluate((el: any) => {
+                if (!el) return;
+                if (typeof el.scrollIntoView === 'function') {
+                    try {
+                        el.scrollIntoView({ block: 'center', inline: 'center', behavior: 'instant' });
+                    } catch (error) {
+                        el.scrollIntoView();
+                    }
+                }
+                if (typeof el.click === 'function') el.click();
+            }, element),
             element.click(),
         ]);
     } catch (error: any) {
@@ -49,13 +197,18 @@ export async function betterClick(page: Page, element: ElementHandle) {
 }
 
 export async function clickElement(context: AgentBrowserContext, { text, gid, tagName }: { text: string, gid: number, tagName?: string }) {
-    tagName = tagName || 'a';
-    webAgentLog.info('Calling clicking on link', { text, gid, tagName });
+    const preferredTagName = (tagName ?? '').trim() || undefined;
+    const sanitizedTagName = sanitizeTagName(preferredTagName ?? 'a');
+    const fallbackSelectors = text ? buildTextSelectors(sanitizedTagName, text) : [];
+    webAgentLog.info('Calling clicking on link', { text, gid, tagName: preferredTagName ?? sanitizedTagName, fallbackSelectors });
     const { page } = context;
     let elementFoundAndClicked = false;
     let linkFoundByGidSelector = false;
+    let linkFoundByTextSelector = false;
+    let linkFoundByDomSearch = false;
     if (gid) {
-        const linkHtmlSelector = `${tagName}[gid="${gid}"]`;
+        const gidSelectorTag = sanitizedTagName === '*' ? '*' : sanitizedTagName;
+        const linkHtmlSelector = `${gidSelectorTag}[gid="${gid}"]`;
         const link = await page.$(linkHtmlSelector);
         if (link) {
             await betterClick(page, link);
@@ -64,11 +217,26 @@ export async function clickElement(context: AgentBrowserContext, { text, gid, ta
         }
     }
 
+    if (!elementFoundAndClicked && text && fallbackSelectors.length > 0) {
+        webAgentLog.debug('Attempting fallback text selector lookup', { fallbackSelectors, tagName: preferredTagName, gid, text });
+        for (const selector of fallbackSelectors) {
+            const link = await page.$(selector);
+            if (link) {
+                await betterClick(page, link);
+                elementFoundAndClicked = true;
+                linkFoundByTextSelector = true;
+                break;
+            }
+        }
+    }
+
     if (!elementFoundAndClicked && text) {
-        const link = await page.$(`${tagName} ::-p-text(${text})`);
+        webAgentLog.debug('Attempting DOM text content search fallback', { tagName: preferredTagName, gid, text });
+        const link = await queryByTextContent(page, preferredTagName, text);
         if (link) {
             await betterClick(page, link);
             elementFoundAndClicked = true;
+            linkFoundByDomSearch = true;
         }
     }
 
@@ -79,12 +247,19 @@ export async function clickElement(context: AgentBrowserContext, { text, gid, ta
     }
 
     await waitForNavigation(page);
-    await utils.puppeteer.closeCookieModals(page);
-    await tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
-    const minHtml = await shrinkHtmlForWebAutomation(page);
+    await agentActionDependencies.closeCookieModals(page);
+    await agentActionDependencies.tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
+    const minHtml = await agentActionDependencies.shrinkHtmlForWebAutomation(page);
 
-    webAgentLog.info(`Clicked on link, current URL: ${page.url()}`, { text, gid, linkFoundByGidSelector, htmlLength: minHtml.length });
-    return maybeShortsTextByTokenLength(`Previous action was: click_element, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
+    webAgentLog.info(`Clicked on link, current URL: ${page.url()}`, {
+        text,
+        gid,
+        linkFoundByGidSelector,
+        linkFoundByTextSelector,
+        linkFoundByDomSearch,
+        htmlLength: minHtml.length,
+    });
+    return agentActionDependencies.maybeShortsTextByTokenLength(`Previous action was: click_element, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
 }
 
 export async function fillForm(context: AgentBrowserContext, { formData }: { formData: { gid: number, value: string }[]}) {
@@ -105,11 +280,11 @@ export async function fillForm(context: AgentBrowserContext, { formData }: { for
         await page.keyboard.press('Enter');
     }
     await waitForNavigation(page);
-    await utils.puppeteer.closeCookieModals(page);
-    await tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
-    const minHtml = await shrinkHtmlForWebAutomation(page);
+    await agentActionDependencies.closeCookieModals(page);
+    await agentActionDependencies.tagAllElementsOnPage(page, UNIQUE_ID_ATTRIBUTE);
+    const minHtml = await agentActionDependencies.shrinkHtmlForWebAutomation(page);
     webAgentLog.info(`Form submitted, current URL: ${page.url()}`, { htmlLength: minHtml.length });
-    return maybeShortsTextByTokenLength(`Previous action was: fill_form_and_submit, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
+    return agentActionDependencies.maybeShortsTextByTokenLength(`Previous action was: fill_form_and_submit, ${HTML_CURRENT_PAGE_PREFIX} ${minHtml}`, 10000);
 }
 
 export async function extractData(context: AgentBrowserContext, { attributesToExtract }: { attributesToExtract: { gid: number, keyName: string }[] }) {
