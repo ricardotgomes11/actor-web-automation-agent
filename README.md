@@ -80,3 +80,13 @@ The cost depends on the model you are using and the action browser process. The 
 **Cost of the running browser**
 
 The Web Agent uses a headless browser. The cost of the browser is based on the amount of time it takes to run the Agent. You can find information about the cost on the [pricing page](https://apify.com/pricing).
+
+## 🚀 CLI Autopilot
+
+You can also run the agent directly from your terminal. Prepare an input JSON file with the same fields you would use in Apify and run:
+
+```bash
+npm run autopilot -- --input path/to/input.json
+```
+
+This command will compile the TypeScript sources and then execute the agent locally using the parameters from the file. For rapid development you can use `npm run autopilot:dev` which runs the TypeScript sources directly via `ts-node`.
