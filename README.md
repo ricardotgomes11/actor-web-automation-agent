@@ -90,6 +90,15 @@ npm test
 ```
 
 
+## 🔏 Canonicalizing ledger entries
+
+When you need to normalize ledger updates before hashing or signing them, use the bundled canonicalization utility. It produces
+deterministic text output, a SHA-256 digest, and (optionally) a detached GPG signature so you can append the result to
+`ledger/LEGAL_MASTER_LOG.txt` with confidence.
+
+See [docs/canonicalization.md](docs/canonicalization.md) for the canonicalization rules and usage examples.
+
+
 ## 📱 Integrating Scriptable with Shortcuts
 For instructions on connecting the Scriptable app with iOS Shortcuts, see [docs/scriptable-shortcuts.md](docs/scriptable-shortcuts.md).
 
