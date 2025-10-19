@@ -42,8 +42,8 @@ export async function shrinkHtml(page: Page, options: ShrinkHtmlOptions) {
             });
             element.attribs = attributes;
         } else {
-            // Keep the children and remove the element with its content
-            $element.before($element.children());
+            // Remove the wrapper element but reinsert its contents so text and child elements remain in the DOM
+            $element.before($element.contents());
             $element.remove();
         }
     }
