@@ -93,3 +93,16 @@ npm test
 ## 📱 Integrating Scriptable with Shortcuts
 For instructions on connecting the Scriptable app with iOS Shortcuts, see [docs/scriptable-shortcuts.md](docs/scriptable-shortcuts.md).
 
+
+## 🧾 Transcript-to-project migration
+
+You can now generate a manual transcript from any HTML page and expand it into a full project plan markdown file.
+
+```bash
+npm run transcript:plan -- "https://example.com" "My Migrated Initiative"
+```
+
+The command writes a plan into `docs/<slug>-project-plan.md` with:
+- Extracted transcript sections.
+- Proposed architecture modules and data flow.
+- A phased delivery roadmap.

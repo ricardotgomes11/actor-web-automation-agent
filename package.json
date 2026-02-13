@@ -37,7 +37,8 @@
 		"build": "tsc",
 		"lint": "eslint ./src --ext .ts",
 		"lint:fix": "eslint ./src --ext .ts --fix",
-		"test": "node --test"
+		"test": "node --test",
+		"transcript:plan": "npm run build --silent && node dist/manual_transcript_cli.js"
 	},
 	"author": "It's not you it's me",
 	"license": "ISC"
