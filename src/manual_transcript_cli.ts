@@ -1,4 +1,4 @@
-import { readFile, writeFile } from 'fs/promises';
+import { mkdir, readFile, writeFile } from 'fs/promises';
 import { extractManualTranscriptFromHtml, buildFullProjectPlan, renderProjectPlanMarkdown } from './transcript_migrator.js';
 
 function slugify(value: string): string {
@@ -30,13 +30,17 @@ async function loadHtml(source: string): Promise<string> {
 }
 
 async function main() {
-    const [source, projectName] = process.argv.slice(2);
+    const args = process.argv.slice(2);
+    const source = args[0];
+    const projectName = args[1];
     if (!source) {
-        throw new Error('Usage: npm run transcript:plan -- <url-or-html-file> [project-name]');
+        throw new Error('Usage: npm run transcript:plan -- <url-or-html-file|transcript:PATH> [project-name]');
     }
 
-    const html = await loadHtml(source);
-    const transcript = extractManualTranscriptFromHtml(html);
+    const isTranscriptSource = source.startsWith('transcript:');
+    const transcript = isTranscriptSource
+        ? await readFile(source.replace(/^transcript:/, ''), 'utf8')
+        : extractManualTranscriptFromHtml(await loadHtml(source));
     const plan = buildFullProjectPlan(transcript, projectName || 'Transcript Migration Project');
     const markdown = renderProjectPlanMarkdown(plan);
 
@@ -44,8 +48,9 @@ async function main() {
     const fileName = `${slugify(projectName || fallbackName)}-project-plan.md`;
     const outputPath = `docs/${fileName}`;
 
+    await mkdir('docs', { recursive: true });
     await writeFile(outputPath, markdown, 'utf8');
-    console.log(`Saved project plan to ${outputPath}`);
+    process.stdout.write(`Saved project plan to ${outputPath}\n`);
 }
 
 await main();

@@ -100,9 +100,13 @@ You can now generate a manual transcript from any HTML page and expand it into a
 
 ```bash
 npm run transcript:plan -- "https://example.com" "My Migrated Initiative"
+# or use a manual transcript file when a source page is bot-protected
+npm run transcript:plan -- transcript:docs/my-transcript.md "My Migrated Initiative"
 ```
 
 The command writes a plan into `docs/<slug>-project-plan.md` with:
 - Extracted transcript sections.
 - Proposed architecture modules and data flow.
 - A phased delivery roadmap.
+
+If the target URL cannot be fetched (for example, anti-bot protection), provide a curated transcript via the `transcript:<path>` input form.
