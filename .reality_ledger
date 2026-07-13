@@ -1,0 +1,2 @@
+{"timestamp":1783932417,"event":"EXTERNAL_VECTOR_INITIALIZED","target_project":"quantum01","payload":{"mcp_tool":"deploy_local_folder","status":"MANIFESTS_GENERATED"},"resonance_hash":"d3b07384d113edec49eaa6238ad5ff00"}
+{"timestamp":1783932563,"event":"CLOUD_RUN_DEPLOYS_SUCCESS","target_project":"quantum01","payload":{"url":"https://actor-web-automation-agent-264781173712.a.run.app","topology_status":"RE_MAPPED"},"resonance_hash":"f9a1c223bd44ebec58aaa7219ce6ff11"}
