@@ -1,16 +1,29 @@
 FROM node:18-slim
 
-# Install system dependencies for headless browser execution if required
+# Install core runtime dependencies for headless browser operations
 RUN apt-get update && apt-get install -y \
-    wget gnupg ca-certificates procps libxss1 \
-    --no-install-recommends && rm -rf /var/lib/apt/lists/*
+    wget \
+    gnupg \
+    ca-certificates \
+    procps \
+    libxss1 \
+    --no-install-recommends && \
+    rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
+
+# Leverage build caching for node modules
 COPY package*.json ./
-RUN npm ci --only=production
+RUN npm ci
+
+# Copy source files and build the production artifact
 COPY . .
+RUN npm run build
+
+# Prune development dependencies to keep the cloud footprint minimal
+RUN npm prune --production
 
 EXPOSE 8080
 ENV PORT=8080
 
-CMD ["node", "server.js"]
+CMD ["node", "dist/server.js"]
