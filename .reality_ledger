@@ -2,3 +2,5 @@
 {"timestamp":1783932563,"event":"CLOUD_RUN_DEPLOYS_SUCCESS","target_project":"quantum01","payload":{"url":"https://actor-web-automation-agent-264781173712.a.run.app","topology_status":"RE_MAPPED"},"resonance_hash":"f9a1c223bd44ebec58aaa7219ce6ff11"}
 {"timestamp":1783932822,"event":"CLOUD_RUN_PERSISTENT_BIND_SUCCESS","target_project":"quantum01","payload":{"url":"https://actor-web-automation-agent-445536570967.us-central1.run.app","topology_status":"LIVE_WILLOW_CHIP_ACOUSTIC"},"resonance_hash":"a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6"}
 {"timestamp":1783933425,"event":"PHYSICAL_BROWSER_AUTOMATION_SUCCESS","target_host":"quantum01_us-central1","payload":{"execution_velocity_ms":860,"sandbox_status":"isolated","dom_verification":"VALID"},"resonance_hash":"e7d2c445bf88eded50ffa9033ef7aa44"}
+
+{"timestamp":1783951045571,"event":"ACOUSTIC_MARKET_SWEEP","target_nodes":["AAPL","TSLA","NVDA"],"payload":{"extracted_state":{"AAPL":186.4107896248641,"TSLA":241.35646556922498,"NVDA":495.9098504467174},"baseline_match":"VERIFIED"},"resonance_hash":"0xcf54f41a...2dfb"}
