@@ -44,7 +44,7 @@ export const GPT_MODEL_LIST: {[key: string]: GPTModelConfig} = {
         },
     },
     'gpt-4-1106-preview': {
-        model: 'gpt-4-128k',
+        model: 'gpt-4-1106-preview',
         maxTokens: 128000,
         interface: 'chat',
         cost: {

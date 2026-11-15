@@ -30,7 +30,7 @@ AI Web Agent was designed for an easy start even if you've never tried automatin
 1. **Add page URL** that you want the Web Agent to start with.
 2. Provide **Instructions** on what the Web Agent should do while on that page. Use simple and straightforward language.
 3. Set up **OpenAI API key**. You can get it from <a href='https://platform.openai.com/account/api-keys' target='_blank' rel='noopener'>OpenAI platform</a>.
-4. Choose **GPT Model** that decyphers your prompt to the Web Agent: GPT-3.5 Turbo 16k, GPT-4, GPT-4 32k.
+4. Choose **GPT Model** that deciphers your prompt to the Web Agent: GPT-3.5 Turbo 16k, GPT-4, GPT-4 32k.
 5. Click **Start**.
 
 For example, to browse a website such as [https://apify.com/](https://apify.com/) and get the cheapest pricing plan, you can use the following instructions:
@@ -94,3 +94,13 @@ The script shows sample detection of recurring subscriptions and suggests an aut
 ## 💡 Axiom of Duality
 
 The [Axiom of Duality](docs/axiom-of-duality.html) summary explores how conceptual goals and computational realities can clash when building agents. Balancing these perspectives helps maintain transparency and integrity.
+
+## 🚀 Deployment
+
+To package the actor for deployment, run:
+
+```bash
+npm run deploy
+```
+
+The script builds the TypeScript sources and creates a timestamped archive in the `deployment/` directory. Upload that bundle with `npx apify@latest push` (or through the Apify Console) to publish the latest build.
