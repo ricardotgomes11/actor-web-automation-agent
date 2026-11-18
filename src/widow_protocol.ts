@@ -15,7 +15,17 @@ import { webAgentLog } from './utils.js';
 import { HTML_CURRENT_PAGE_PREFIX } from './consts.js';
 import { CostHandler } from './cost_handler.js';
 
-export async function runWidowProtocol() {
+export interface ExternalConnectivityRuntimeConfig {
+    externalConnectivityEnabled?: boolean;
+    externalGatewayUrl?: string;
+    mcpTransportUrl?: string;
+    runtimeApiKey?: string;
+    provenanceLoggingEnabled?: boolean;
+}
+
+export async function runWidowProtocol(
+    runtimeConfig: ExternalConnectivityRuntimeConfig = {},
+) {
     const LIVE_VIEW_URL = process.env.ACTOR_WEB_SERVER_URL ? process.env.ACTOR_WEB_SERVER_URL : 'http://localhost:4000';
     const RECORDING_PATH = 'recording.mp4';
 
@@ -27,15 +37,27 @@ export async function runWidowProtocol() {
         instructions,
         proxyConfiguration,
         openaiApiKey,
-        model = 'gpt-3.5-turbo-16k',
+        model = 'gpt-4o-mini',
+        externalEndpointUrl,
+        mcpServerUrl,
     } = await Actor.getInput() as Input;
 
-    if (!process.env.OPENAI_API_KEY && !openaiApiKey) {
-        await Actor.fail('You need to set open AI API key in input.');
-        throw new Error('The openai API key cannot be empty!');
+    const resolvedApiKey = runtimeConfig.runtimeApiKey || process.env.OPENAI_API_KEY || openaiApiKey;
+    const resolvedGatewayUrl = externalEndpointUrl || runtimeConfig.externalGatewayUrl;
+    const resolvedMcpUrl = mcpServerUrl || runtimeConfig.mcpTransportUrl;
+
+    if (!resolvedApiKey) {
+        await Actor.fail('You need to supply model provider credentials in runtime configuration or input.');
+        throw new Error('Model provider API key cannot be empty!');
     }
 
-    log.info('Starting Actor..', { startUrl, instructions });
+    log.info('Starting Actor..', {
+        startUrl,
+        instructions,
+        externalConnectivity: runtimeConfig.externalConnectivityEnabled !== false,
+        gatewayConfigured: Boolean(resolvedGatewayUrl),
+        mcpConfigured: Boolean(resolvedMcpUrl),
+    });
 
     // Backbone of the agent, it will be used to run the agent as initial context.
     const initialContext = {
@@ -114,14 +136,17 @@ export async function runWidowProtocol() {
     });
 
     const costHandler = new CostHandler(model);
-    const llm = new ChatOpenAI({
-        openAIApiKey: process.env.OPENAI_API_KEY || openaiApiKey,
-        modelName: model,
-        temperature: 0,
-        callbacks: [
-            costHandler,
-        ],
-    });
+    const llm = new ChatOpenAI(
+        {
+            openAIApiKey: resolvedApiKey,
+            modelName: model,
+            temperature: 0,
+            callbacks: [
+                costHandler,
+            ],
+        },
+        resolvedGatewayUrl ? { basePath: resolvedGatewayUrl } : undefined,
+    );
 
     const executor = WebAgentExecutor.fromAgentAndTools({
         tags: ['openai-functions'],

@@ -8,4 +8,6 @@ export interface Input {
     proxyConfiguration?: ProxyConfigurationOptions;
     openaiApiKey?: string; // We can pass openaiApiKey as env variable locally
     model?: string;
+    externalEndpointUrl?: string;
+    mcpServerUrl?: string;
 }

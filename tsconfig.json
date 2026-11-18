@@ -5,6 +5,8 @@
         "target": "ES2022",
         "outDir": "dist",
         "noUnusedLocals": false,
+        "skipLibCheck": true,
+        "typeRoots": ["./node_modules/@types"],
         "lib": ["DOM"]
     },
     "include": [

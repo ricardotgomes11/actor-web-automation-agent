@@ -1,4 +1,5 @@
-> This Actor is a work in progress. Got feedback? Head to the [Issues tab](https://console.apify.com/actors/dLXH5Ia8gLsNjieKV/issues) in Console.
+> ⚠️ The AI Web Agent is an experimental project and is currently not actively maintained. While we have plans for long-term improvements, these will not be implemented in the near future. We welcome and appreciate any contributions, including pull requests or documentation enhancements.
+>
 
 ## Open external connectivity
 
@@ -47,3 +48,9 @@ See [Google Stitch Skills Integration](docs/integrations/google-stitch-skills.md
 ## Axiom of Duality
 
 The [Axiom of Duality](docs/axiom-of-duality.html) summary explores the relationship between conceptual goals and computational implementation.
+
+## Resources
+
+- [What are AI Agents?](https://blog.apify.com/what-are-ai-agents/)
+- [11 AI agent use cases (on Apify)](https://blog.apify.com/ai-agent-use-cases/)
+- [AI agent workflow: building an agent to query Apify datasets](https://blog.apify.com/ai-agent-workflow/)
